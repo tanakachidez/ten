@@ -122,11 +122,11 @@ export default function AdminPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    // Simple demo login - in production, this would be properly secured
-    if (loginData.username === "admin" && loginData.password === "password") {
+    // Simple login validation
+    if (loginData.username === "ggfs" && loginData.password === "0gettersgoal1") {
       setIsLoggedIn(true)
     } else {
-      alert("Invalid credentials. Use username: admin, password: password")
+      alert("Invalid credentials. Please check your username and password.")
     }
   }
 
@@ -206,13 +206,6 @@ export default function AdminPage() {
                     Login
                   </Button>
                 </form>
-                <div className="mt-4 p-3 bg-gold-50 rounded text-sm text-gray-600 border border-gold-200">
-                  <p>
-                    <strong>Demo Credentials:</strong>
-                  </p>
-                  <p>Username: admin</p>
-                  <p>Password: password</p>
-                </div>
               </CardContent>
             </Card>
           </div>
