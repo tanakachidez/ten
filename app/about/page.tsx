@@ -1,14 +1,40 @@
+"use client"
+
 import { ScrollAnimation } from "@/components/scroll-animation"
 import Image from "next/image"
 import { Target, Eye, Heart, Shield, Mail } from "lucide-react"
+import { useState, useEffect } from "react"
+import { getAboutContent, type AboutContent } from "@/lib/content-store"
 
 export default function AboutPage() {
+  const [content, setContent] = useState<AboutContent | null>(null)
+
+  useEffect(() => {
+    try {
+      const aboutContent = getAboutContent()
+      setContent(aboutContent)
+    } catch (error) {
+      console.error("Error loading about content:", error)
+    }
+  }, [])
+
+  // Use fallback values if content hasn't loaded yet
+  const displayContent = content || {
+    mission: "To provide the best, affordable and smart financial solutions that empower and addresses the needs of employees and small to medium enterprises in Zimbabwe.",
+    vision: "To be a leading financial institution in the provision of affordable and smart financial solution to employed individuals and SMEs in Zimbabwe.",
+    values: ["Commitment", "Respect", "Transparency"],
+    valuesDescription: "Goal Getters is a learning institute and encourages a system of continuous improvement.",
+  }
+
+  if (!content) {
+    return null // or a loading spinner, skeleton, etc.
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gold-50 to-white">
       <header className="bg-gradient-to-r from-gold-400 via-gold-500 to-gold-400 text-black py-8 shadow-lg">
         <div className="max-w-7xl mx-auto px-6">
           <h1 className="text-4xl md:text-5xl font-bold text-center drop-shadow-md">About Us</h1>
-          <p className="text-center text-lg mt-2 text-black/80">Learn more about our mission, vision, and values</p>
         </div>
       </header>
 
@@ -26,8 +52,7 @@ export default function AboutPage() {
                     <h2 className="text-3xl font-bold text-gray-900">MISSION</h2>
                   </div>
                   <p className="text-lg text-gray-700 leading-relaxed">
-                    To provide the best, affordable and smart financial solutions that empower and addresses the needs
-                    of employees and small to medium enterprises in Zimbabwe.
+                    {displayContent.mission}
                   </p>
                 </div>
                 <div className="relative h-64 lg:h-auto">
@@ -52,8 +77,7 @@ export default function AboutPage() {
                     <h2 className="text-3xl font-bold text-gray-900">VISION</h2>
                   </div>
                   <p className="text-lg text-gray-700 leading-relaxed">
-                    To be a leading financial institution in the provision of affordable and smart financial solution to
-                    employed individuals and SMEs in Zimbabwe.
+                    {displayContent.vision}
                   </p>
                 </div>
               </div>
@@ -72,7 +96,7 @@ export default function AboutPage() {
                     <h2 className="text-3xl font-bold text-gray-900">VALUES</h2>
                   </div>
                   <div className="space-y-4 mb-6">
-                    {["Commitment", "Respect", "Transparency"].map((value, index) => (
+                    {displayContent.values.map((value, index) => (
                       <div
                         key={index}
                         className="flex items-center gap-4 p-3 bg-white rounded-lg shadow-sm border border-gold-200"
@@ -83,7 +107,7 @@ export default function AboutPage() {
                     ))}
                   </div>
                   <p className="text-gray-700 bg-gold-100 p-4 rounded-lg border-l-4 border-gold-500">
-                    Goal Getters is a learning institute and encourages a system of continuous improvement.
+                    {displayContent.valuesDescription}
                   </p>
                 </div>
                 <div className="relative h-64 lg:h-auto">

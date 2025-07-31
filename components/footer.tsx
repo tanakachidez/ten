@@ -21,6 +21,7 @@ export function Footer() {
               <div>
                 <p className="font-semibold text-gold-300 mb-2">Phone:</p>
                 <p className="text-gray-300 text-lg">+263713014547</p>
+                <p className="text-gray-300 text-lg">+263789573321</p>
               </div>
             </div>
             <div className="flex items-start gap-4 p-4 bg-gold-500/5 rounded-lg border border-gold-500/20">
@@ -33,8 +34,9 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-gold-500/30 text-center">
-          <p className="text-gray-400 mb-3">© 2024 Goal Getters Financial Services. All rights reserved.</p>
+          <p className="text-gray-400 mb-3">© 2025 Goal Getters Financial Services. All rights reserved.</p>
           <p className="text-gold-400 font-bold text-lg">"Empowering dreams through smart financial solutions."</p>
+          <p className="text-gray-300 mt-4">Contact us: +263713014547 | +263789573321 | info@goalgetters.co.zw</p>
         </div>
       </div>
     </footer>

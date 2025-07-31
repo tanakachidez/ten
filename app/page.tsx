@@ -1,5 +1,9 @@
+"use client"
+
 import { Slideshow } from "@/components/slideshow"
 import { MapPin, Phone, Mail } from "lucide-react"
+import { useEffect, useState } from "react"
+import { getHomeContent, type HomeContent } from "@/lib/content-store"
 
 const slideshowImages = [
   "/images/home-page-hero.webp",
@@ -8,6 +12,38 @@ const slideshowImages = [
 ]
 
 export default function HomePage() {
+  const [content, setContent] = useState<HomeContent | null>(null)
+
+  useEffect(() => {
+    try {
+      setContent(getHomeContent())
+    } catch (error) {
+      console.error("Error loading home content:", error)
+    }
+  }, [])
+
+  // Use fallback values if content hasn't loaded yet
+  const displayContent = content || {
+    heroTitle: "Goal Getters Financial Services",
+    heroSubtitle: "Helps you to live your dream",
+    address: "No. 2, East wing, First Floor of 6491A Clyde Road Eastlea, Harare",
+    phone: "+263713014547, +263789573321",
+    email: "info@goalgetters.co.zw",
+  }
+
+  useEffect(() => {
+    async function fetchContent() {
+      const homeContent = await getHomeContent()
+      setContent(homeContent)
+    }
+
+    fetchContent()
+  }, [])
+
+  if (!content) {
+    return null // or a loading spinner, etc.
+  }
+
   return (
     <div className="min-h-screen">
       {/* Hero Section with Slideshow Background */}
@@ -24,10 +60,10 @@ export default function HomePage() {
         <div className="relative z-10 flex items-center justify-center h-full">
           <div className="text-center px-6 max-w-4xl mx-auto">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 drop-shadow-2xl animate-fadeIn">
-              Goal Getters Financial Services
+              {displayContent.heroTitle}
             </h1>
             <p className="text-2xl md:text-3xl lg:text-4xl font-medium text-gold-300 drop-shadow-xl animate-fadeIn">
-              Helps you to live your dream
+              {displayContent.heroSubtitle}
             </p>
           </div>
         </div>
@@ -53,7 +89,7 @@ export default function HomePage() {
                 <div>
                   <p className="font-semibold text-gold-300 mb-2">Address:</p>
                   <p className="text-gray-300 leading-relaxed">
-                    No. 2, East wing, First Floor of 6491A Clyde Road Eastlea, Harare
+                    {displayContent.address}
                   </p>
                 </div>
               </div>
@@ -61,21 +97,24 @@ export default function HomePage() {
                 <Phone className="h-6 w-6 text-gold-400 mt-1" />
                 <div>
                   <p className="font-semibold text-gold-300 mb-2">Phone:</p>
-                  <p className="text-gray-300 text-lg">+263713014547</p>
+                  {displayContent.phone.split(',').map((phone, index) => (
+                    <p key={index} className="text-gray-300 text-lg">{phone.trim()}</p>
+                  ))}
                 </div>
               </div>
               <div className="flex items-start gap-4 p-4 bg-gold-500/5 rounded-lg border border-gold-500/20">
                 <Mail className="h-6 w-6 text-gold-400 mt-1" />
                 <div>
                   <p className="font-semibold text-gold-300 mb-2">Email:</p>
-                  <p className="text-gray-300">info@goalgetters.co.zw</p>
+                  <p className="text-gray-300">{displayContent.email}</p>
                 </div>
               </div>
             </div>
           </div>
           <div className="mt-8 pt-8 border-t border-gold-500/30 text-center">
-            <p className="text-gray-400 mb-3">© 2024 Goal Getters Financial Services. All rights reserved.</p>
+            <p className="text-gray-400 mb-3">© 2025 Goal Getters Financial Services. All rights reserved.</p>
             <p className="text-gold-400 font-bold text-lg">"Empowering dreams through smart financial solutions."</p>
+            <p className="text-gray-300 mt-4">Contact us: {displayContent.phone} | {displayContent.email}</p>
           </div>
         </div>
       </footer>

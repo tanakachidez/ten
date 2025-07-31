@@ -9,63 +9,116 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, Edit, Trash2, MessageSquare, Save, Home, Info, Phone } from "lucide-react"
+import { getMessages, deleteMessage, updateMessageStatus, type Message } from "@/lib/messages-store"
+import { 
+  getHomeContent, getAboutContent, getContactContent,
+  saveHomeContent, saveAboutContent, saveContactContent,
+  type HomeContent, type AboutContent, type ContactContent 
+} from "@/lib/content-store"
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [loginData, setLoginData] = useState({ username: "", password: "" })
 
   // Content state management
-  const [homeContent, setHomeContent] = useState({
-    heroTitle: "Goal Getters Financial Services",
-    heroSubtitle: "Helps you to live your dream",
-    address: "No. 2, East wing, First Floor of 6491A Clyde Road Eastlea, Harare",
-    phone: "+263713014547",
-    email: "info@goalgetters.co.zw",
+  const [homeContent, setHomeContent] = useState<HomeContent>({
+    heroTitle: "",
+    heroSubtitle: "",
+    address: "",
+    phone: "",
+    email: "",
   })
 
-  const [aboutContent, setAboutContent] = useState({
-    mission:
-      "To provide the best, affordable and smart financial solutions that empower and addresses the needs of employees and small to medium enterprises in Zimbabwe.",
-    vision:
-      "To be a leading financial institution in the provision of affordable and smart financial solution to employed individuals and SMEs in Zimbabwe.",
-    values: ["Commitment", "Respect", "Transparency"],
-    valuesDescription: "Goal Getters is a learning institute and encourages a system of continuous improvement.",
+  const [aboutContent, setAboutContent] = useState<AboutContent>({
+    mission: "",
+    vision: "",
+    values: [],
+    valuesDescription: "",
   })
 
-  const [contactContent, setContactContent] = useState({
-    pageTitle: "Contact Us",
-    pageSubtitle: "Get in touch with our team",
-    formTitle: "Send us a Message",
-    formDescription: "Fill out the form below and we'll get back to you as soon as possible.",
+  const [contactContent, setContactContent] = useState<ContactContent>({
+    pageTitle: "",
+    pageSubtitle: "",
+    formTitle: "",
+    formDescription: "",
     businessHours: {
-      weekdays: "Monday - Friday: 8:00 AM - 5:00 PM",
-      saturday: "Saturday: 8:00 AM - 1:00 PM",
+      weekdays: "",
     },
   })
+  
+  // Load content when admin logs in
+  useEffect(() => {
+    if (isLoggedIn) {
+      try {
+        setHomeContent(getHomeContent())
+        setAboutContent(getAboutContent())
+        setContactContent(getContactContent())
+      } catch (error) {
+        console.error("Error loading content:", error)
+      }
+    }
+  }, [isLoggedIn])
 
-  // Mock data for demonstration
-  const mockMessages = [
-    {
-      id: 1,
-      fullName: "John Doe",
-      email: "john@example.com",
-      phoneNumber: "+263712345678",
-      message: "I'm interested in a group enterprise loan for my farming business.",
-      date: "2024-01-15",
-      status: "unread",
-    },
-    {
-      id: 2,
-      fullName: "Mary Smith",
-      email: "mary@example.com",
-      phoneNumber: "+263723456789",
-      message: "Can you provide more information about solar loans?",
-      date: "2024-01-14",
-      status: "read",
-    },
-  ]
+  // State for storing messages
+  const [messages, setMessages] = useState<Message[]>([])
+
+  // Load messages from storage
+  useEffect(() => {
+    const loadMessages = () => {
+      try {
+        const storedMessages = getMessages()
+        setMessages(storedMessages.length > 0 ? storedMessages : [
+          // Fallback mock data if no messages exist
+          {
+            id: 1,
+            fullName: "John Doe",
+            email: "john@example.com",
+            phoneNumber: "+263712345678",
+            message: "I'm interested in a group enterprise loan for my farming business.",
+            date: "2025-01-15",
+            status: "unread",
+          },
+          {
+            id: 2,
+            fullName: "Mary Smith",
+            email: "mary@example.com",
+            phoneNumber: "+263723456789",
+            message: "Can you provide more information about solar loans?",
+            date: "2025-01-14",
+            status: "read",
+          },
+        ])
+      } catch (error) {
+        console.error("Error loading messages:", error)
+      }
+    }
+
+    // Only load messages when logged in
+    if (isLoggedIn) {
+      loadMessages()
+    }
+  }, [isLoggedIn])
+
+  // Handle message actions
+  const handleMarkAsRead = (id: number) => {
+    try {
+      updateMessageStatus(id, 'read')
+      setMessages(prev => prev.map(msg => msg.id === id ? { ...msg, status: 'read' } : msg))
+    } catch (error) {
+      console.error("Error updating message status:", error)
+    }
+  }
+
+  const handleDeleteMessage = (id: number) => {
+    try {
+      deleteMessage(id)
+      setMessages(prev => prev.filter(msg => msg.id !== id))
+    } catch (error) {
+      console.error("Error deleting message:", error)
+    }
+  }
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
@@ -85,8 +138,23 @@ export default function AdminPage() {
   }
 
   const handleSaveContent = (contentType: string) => {
-    // In a real application, this would save to a database
-    alert(`${contentType} content saved successfully!`)
+    try {
+      switch(contentType) {
+        case "Home Page":
+          saveHomeContent(homeContent)
+          break
+        case "About Page":
+          saveAboutContent(aboutContent)
+          break
+        case "Contact Page":
+          saveContactContent(contactContent)
+          break
+      }
+      alert(`${contentType} content saved successfully!`)
+    } catch (error) {
+      console.error(`Error saving ${contentType} content:`, error)
+      alert(`Error saving ${contentType} content. Please try again.`)
+    }
   }
 
   if (!isLoggedIn) {
@@ -203,8 +271,20 @@ export default function AdminPage() {
                   <CardDescription>View and manage messages from the contact form</CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
+                  {messages.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No messages yet. When customers submit the contact form, their messages will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="mb-4 flex justify-between items-center">
+                      <p className="text-sm text-gray-500">{messages.length} message{messages.length !== 1 ? 's' : ''} received</p>
+                      <p className="text-sm text-gray-500">
+                        {messages.filter(m => m.status === 'unread').length} unread
+                      </p>
+                    </div>
+                  )}
                   <div className="space-y-4">
-                    {mockMessages.map((message) => (
+                    {messages.map((message) => (
                       <div
                         key={message.id}
                         className="border-2 border-gold-200 rounded-lg p-4 hover:bg-gold-50 transition-colors"
@@ -228,21 +308,29 @@ export default function AdminPage() {
                         </div>
                         <p className="text-gray-700 mb-3">{message.message}</p>
                         <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-gold-300 hover:bg-gold-50 bg-transparent"
+                          {message.status === "unread" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-gold-300 hover:bg-gold-50 bg-transparent"
+                              onClick={() => handleMarkAsRead(message.id)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              Mark as Read
+                            </Button>
+                          )}
+                          <Button 
+                            size="sm" 
+                            className="bg-gold-500 hover:bg-gold-600 text-black"
+                            onClick={() => window.open(`mailto:${message.email}?subject=Re: Your inquiry to Goal Getters Financial Services`)}
                           >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button size="sm" className="bg-gold-500 hover:bg-gold-600 text-black">
                             Reply
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             className="text-red-600 hover:text-red-700 border-red-300 hover:bg-red-50 bg-transparent"
+                            onClick={() => handleDeleteMessage(message.id)}
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
                             Delete
